@@ -1,0 +1,7 @@
+*
+* FAT32 filesystem driver for IRIX 6.5
+*
+*FLAG   PREFIX  SOFT    #DEV    DEPENDENCIES
+oxj     fat32   -       -       sgi,specfs
+
+$$$

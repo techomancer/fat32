@@ -1,0 +1,4 @@
+*
+* FAT32 filesystem support
+*
+USE: fat32
