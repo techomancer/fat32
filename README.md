@@ -262,3 +262,4 @@ telnet octopus
 ## License
 
 This is an IRIX kernel module developed for SGI IRIX 6.5 systems.
+It is licensed under BSD-3 clause license in file [LICENSE](LICENSE).
