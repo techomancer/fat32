@@ -1024,7 +1024,9 @@ fat32_create_fdentry(fat32fs_vnode_t *dir_fv, fat32fs_vnode_t *fv, char *name, i
             cmn_err(CE_WARN, "fat32_create_fdentry: init_dir failed: %d", error);
             return error;
         }
-        cmn_err(CE_WARN, "fat32_create_fdentry: allocated dir cluster=%u", start_cluster);
+#ifdef FAT32_DBG_DIRENT
+        cmn_err(CE_NOTE, "fat32_create_fdentry: allocated dir cluster=%u", start_cluster);
+#endif        
     } else {
         start_cluster = 0; /* Empty file */
     }
@@ -1109,7 +1111,9 @@ fat32_create_fdentry(fat32fs_vnode_t *dir_fv, fat32fs_vnode_t *fv, char *name, i
 
     /* Populate vnode structure if not renaming (rename preserves vnode) */
     if (!(flags & FAT32_CRE_RENAME)) {
+#ifdef FAT32_DBG_DIRENT
         cmn_err(CE_NOTE, "fat32_create_fdentry: calling make_vnode cluster=%u", start_cluster);
+#endif
         error = fat32_make_vnode(start_cluster, (flags & FAT32_CRE_DIR) ? VDIR : VREG, 
                                 &fv->fv_vnode, fv, FV_TO_VNODE(dir_fv));
         if (error) {

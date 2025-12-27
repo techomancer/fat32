@@ -298,4 +298,20 @@ uint32_t fat32_log2(uint32_t n);
 uint8_t fat32_checksum(const uint8_t *name);
 void fat32_generate_short_name(uint32_t cluster, uint32_t offset, char *short_name);
 
+/*
+ * Debug macro for VN_RELE to catch v_count issues
+ */
+#ifdef FAT32_DBG_RELE
+#define FAT32_VN_RELE(vp) \
+    do { \
+        if ((vp) && (vp)->v_count <= 1) { \
+            printf("FAT32_DBG: VN_RELE at %s:%d - vp=%p v_count=%d (WARNING: will go to zero or negative!)\n", \
+                   __FILE__, __LINE__, (vp), (vp)->v_count); \
+        } \
+        VN_RELE(vp); \
+    } while (0)
+#else
+#define FAT32_VN_RELE(vp) VN_RELE(vp)
+#endif
+
 #endif /* __FAT32FS_H */

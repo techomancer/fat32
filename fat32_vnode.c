@@ -42,7 +42,9 @@ fat32_close(bhv_desc_t *bdp, int flag, lastclose_t lastclose, cred_t *cr)
 #endif
     /* On last close, flush dirty metadata to disk */
     if (lastclose == L_TRUE && (fv->fv_flags & FV_DIRTY_MASK)) {
+#ifdef FAT32_DBG_OTHER
         cmn_err(CE_NOTE, "fat32_close: last close with dirty metadata, flushing");
+#endif
         fat32_sync_metadata(fv);
     }
 
@@ -1521,8 +1523,13 @@ fat32_inactive(bhv_desc_t *bdp, cred_t *cr)
     /* Free the FAT32 vnode structure (releases parent_vp, frees mrlock) */
     fat32_vnode_delete(fv);
 
-    /* Free the system vnode */
-    vn_free(vp);
+    /*
+     * Note: Do NOT call vn_free(vp) here!
+     * Per IRIX vnode.h documentation: "Do not call vn_free from within
+     * VOP_INACTIVE; just remove the behaviors and vn_rele will do the
+     * right thing."
+     * The VFS layer will handle vnode deallocation when appropriate.
+     */
 
 #ifdef FAT32_DBG_OTHER
     cmn_err(CE_NOTE, "fat32_inactive: exit, vnode torn down");

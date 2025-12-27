@@ -372,7 +372,7 @@ fat32_vnode_delete(fat32fs_vnode_t *fv)
 
     /* Release parent vnode reference if we have one */
     if (fv->fv_parent_vp) {
-        VN_RELE(fv->fv_parent_vp);
+        FAT32_VN_RELE(fv->fv_parent_vp);
         fv->fv_parent_vp = NULL;
     }
 

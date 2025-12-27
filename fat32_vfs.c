@@ -291,7 +291,7 @@ fat32_mount(vfs_t *vfsp, vnode_t *mvp, struct mounta *uap, char *attrs, cred_t *
      */
     if (devvp->v_type != VBLK) {
         cmn_err(CE_WARN, "fat32_mount: not a block device");
-        VN_RELE(devvp);
+        FAT32_VN_RELE(devvp);
         return ENOTBLK;
     }
 
@@ -302,7 +302,7 @@ fat32_mount(vfs_t *vfsp, vnode_t *mvp, struct mounta *uap, char *attrs, cred_t *
      */
     if (vfs_devsearch(dev, fat32fstype)) {
         cmn_err(CE_WARN, "fat32_mount: device already mounted");
-        VN_RELE(devvp);
+        FAT32_VN_RELE(devvp);
         return EBUSY;
     }
 
@@ -312,7 +312,7 @@ fat32_mount(vfs_t *vfsp, vnode_t *mvp, struct mounta *uap, char *attrs, cred_t *
     fsi = (fat32fs_info_t *)kmem_zalloc(sizeof(fat32fs_info_t), KM_SLEEP);
     if (!fsi) {
         cmn_err(CE_WARN, "fat32_mount: kmem_zalloc failed");
-        VN_RELE(devvp);
+        FAT32_VN_RELE(devvp);
         return ENOMEM;
     }
 
@@ -334,7 +334,7 @@ fat32_mount(vfs_t *vfsp, vnode_t *mvp, struct mounta *uap, char *attrs, cred_t *
     if (error) {
         mrfree(&fsi->fsi_lock);
         kmem_free(fsi, sizeof(fat32fs_info_t));
-        VN_RELE(devvp);
+        FAT32_VN_RELE(devvp);
         return error;
     }
 
@@ -367,7 +367,7 @@ fat32_mount(vfs_t *vfsp, vnode_t *mvp, struct mounta *uap, char *attrs, cred_t *
             cmn_err(CE_WARN, "fat32_mount: failed to allocate root vnode structure");
             mrfree(&fsi->fsi_lock);
             kmem_free(fsi, sizeof(fat32fs_info_t));
-            VN_RELE(devvp);
+            FAT32_VN_RELE(devvp);
             return ENOMEM;
         }
 
@@ -377,7 +377,7 @@ fat32_mount(vfs_t *vfsp, vnode_t *mvp, struct mounta *uap, char *attrs, cred_t *
             fat32_vnode_delete(root_fv);
             mrfree(&fsi->fsi_lock);
             kmem_free(fsi, sizeof(fat32fs_info_t));
-            VN_RELE(devvp);
+            FAT32_VN_RELE(devvp);
             return error;
         }
     }
@@ -445,7 +445,7 @@ fat32_unmount(bhv_desc_t *bdp, int flags, cred_t *cr)
      * Release root vnode
      */
     if (fsi->fsi_rootvp) {
-        VN_RELE(fsi->fsi_rootvp);
+        FAT32_VN_RELE(fsi->fsi_rootvp);
     }
 
     /*
@@ -462,7 +462,7 @@ fat32_unmount(bhv_desc_t *bdp, int flags, cred_t *cr)
      * Release device vnode
      */
     if (devvp) {
-        VN_RELE(devvp);
+        FAT32_VN_RELE(devvp);
     }
 
     /*
@@ -493,8 +493,9 @@ fat32_root(bhv_desc_t *bdp, vnode_t **vpp)
 
     fsi = BHV_TO_FSI(bdp);
 
+#ifdef FAT32_DBG_OTHER
     cmn_err(CE_NOTE, "fat32_root: enter, returning cached root vnode");
-
+#endif
     /*
      * Return cached root vnode with incremented reference count
      * The root vnode was created and cached during mount
@@ -503,7 +504,9 @@ fat32_root(bhv_desc_t *bdp, vnode_t **vpp)
     VN_HOLD(vp);
     *vpp = vp;
 
+#ifdef FAT32_DBG_OTHER
     cmn_err(CE_NOTE, "fat32_root: exit success, vp=%p", vp);
+#endif
     return 0;
 }
 
