@@ -33,7 +33,7 @@
 #define FAT32_LFN_LAST          0x40
 #define FAT32_LFN_DELETED       0xE5
 #define FAT32_LFN_SEQ_MASK      0x1F
-#define FAT32_LFN_FILL          0xFF
+#define FAT32_LFN_FILL          0xFFFF  /* UCS-2 padding char after the NUL terminator */
 #define FAT32_MAX_NAME          255     /* Maximum filename length for LFN */
 
 /*

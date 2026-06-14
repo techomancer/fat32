@@ -238,7 +238,26 @@ fat32_get_dirent(fat32fs_vnode_t *fv, uint32_t *offset, struct dirent *dirent,
                 /* Check if this is the first LFN entry (highest sequence number) */
                 if (lfn->sequence & FAT32_LFN_LAST) {
                     /* This is the start of a new LFN sequence */
+                    uint32_t full_len;
+
                     entry_start_offset = current_offset;
+
+                    /*
+                     * Pre-terminate at the full name length.  When a name's
+                     * length is an exact multiple of 13, the LFN entries hold
+                     * no 0x0000 terminator (the last slot is completely full),
+                     * so fat32_set_dname() never NUL-terminates and stale bytes
+                     * from a previously read (longer) entry would otherwise leak
+                     * in as a suffix (e.g. "Basement Jaxx" -> "Basement Jaxxsand").
+                     * For names that are not a multiple of 13, the embedded
+                     * 0x0000 moves the terminator earlier as characters are
+                     * copied below (fat32_set_dname() shrinks name_size on NUL).
+                     */
+                    full_len = (uint32_t)((lfn->sequence & FAT32_LFN_SEQ_MASK)) * 13;
+                    if (full_len < *d_name_size) {
+                        d_name[full_len] = '\0';
+                        name_size = full_len;
+                    }
                 }
 
                 /* Mark that we saw an LFN */
