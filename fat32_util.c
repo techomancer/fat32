@@ -382,8 +382,9 @@ fat32_vnode_delete(fat32fs_vnode_t *fv)
     /* Destroy the cluster cache mutex */
     mutex_destroy(&fv->fv_cache_lock);
 
-    /* Mark as deleted by clearing structsize */
-    fv->fv_structsize = 0;
+    /* Poison entire structure before free so stale BHV_TO_FV references
+     * are detected by fat32_vnode_validate (magic and structsize checks). */
+    bzero(fv, sizeof(fat32fs_vnode_t));
 
     /* Free the structure */
     kmem_free(fv, sizeof(fat32fs_vnode_t));
