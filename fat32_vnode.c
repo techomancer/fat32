@@ -1300,6 +1300,7 @@ fat32_readdir(bhv_desc_t *bdp, struct uio *uiop, cred_t *cr, int *eofp)
     uint32_t disk_offset;
     int error;
     size_t reclen;
+    int nemitted = 0;
 
 #ifdef FAT32_DBG_DIRENT
     cmn_err(CE_NOTE, "fat32_readdir: enter offset=%lld resid=%d",
@@ -1342,6 +1343,10 @@ fat32_readdir(bhv_desc_t *bdp, struct uio *uiop, cred_t *cr, int *eofp)
 #ifdef FAT32_DBG_DIRENT
                 cmn_err(CE_NOTE, "fat32_readdir: buffer full at '.' entry");
 #endif
+                /* Buffer full: success if we already emitted something,
+                 * otherwise the buffer is too small for even one entry. */
+                if (nemitted > 0)
+                    error = 0;
                 break;
             }
             if (error) {
@@ -1349,6 +1354,7 @@ fat32_readdir(bhv_desc_t *bdp, struct uio *uiop, cred_t *cr, int *eofp)
                 break;
             }
 
+            nemitted++;
             offset = 1;
             continue;
         }
@@ -1373,6 +1379,10 @@ fat32_readdir(bhv_desc_t *bdp, struct uio *uiop, cred_t *cr, int *eofp)
 #ifdef FAT32_DBG_DIRENT
                 cmn_err(CE_NOTE, "fat32_readdir: buffer full at '..' entry");
 #endif
+                /* Buffer full: success if we already emitted something,
+                 * otherwise the buffer is too small for even one entry. */
+                if (nemitted > 0)
+                    error = 0;
                 break;
             }
             if (error) {
@@ -1380,6 +1390,7 @@ fat32_readdir(bhv_desc_t *bdp, struct uio *uiop, cred_t *cr, int *eofp)
                 break;
             }
 
+            nemitted++;
             offset = 2;
             continue;
         }
@@ -1426,7 +1437,11 @@ fat32_readdir(bhv_desc_t *bdp, struct uio *uiop, cred_t *cr, int *eofp)
 #ifdef FAT32_DBG_DIRENT
             cmn_err(CE_NOTE, "fat32_readdir: buffer full, stopping");
 #endif
-            /* Don't advance offset - this entry will be read on next call */
+            /* Don't advance offset - this entry will be read on next call.
+             * Buffer full is success if we already emitted something;
+             * otherwise the buffer is too small for even one entry. */
+            if (nemitted > 0)
+                error = 0;
             break;
         }
         if (error) {
@@ -1434,6 +1449,7 @@ fat32_readdir(bhv_desc_t *bdp, struct uio *uiop, cred_t *cr, int *eofp)
             break;
         }
 
+        nemitted++;
         /* Update offset to the value returned by getdirent */
         offset = disk_offset;
     }
